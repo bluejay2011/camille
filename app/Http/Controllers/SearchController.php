@@ -13,6 +13,7 @@ use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Input;
 use Aws\LexRuntimeService\LexRuntimeServiceClient;
 use GuzzleHttp\Client;
+use Illuminate\Http\Request as LaravelRequest;
 
 class SearchController extends Controller
 {
@@ -28,6 +29,12 @@ class SearchController extends Controller
 
         // TODO: prepare view for result set :D
         $rs = $this->getIntent($searchQuery);
+        if ($rs['intentName'] === 'none') {
+            // show the generic view
+        } else {
+            // show search results
+
+        }
         return view('search', ['q' => $searchQuery, 'rs' => $rs]);
     }
 
@@ -48,6 +55,7 @@ class SearchController extends Controller
         $lexResult = $lex->postText($input);
 
         if ($lexResult->get('dialogState') === 'ElicitIntent') {
+            $intentName = "none";
             $rs = $this->getDataWithoutIntent($searchQuery);
         } elseif ($lexResult->get('dialogState') === 'ReadyForFulfillment') {
             // TODO: where can we use intent name?
@@ -55,11 +63,14 @@ class SearchController extends Controller
             $rs = $this->getDataFromEndpoint($lexResult->get('slots'));
         }
 
-        return $rs;
+        return array('intentName' => $intentName, 'resultSet' => $rs);
     }
 
     private function getDataFromEndpoint($searchParams)
     {
+        $query = new \stdClass();
+        $query->query = $searchParams;
+
         $url = 'https://mp1180ms5a.execute-api.us-west-2.amazonaws.com/Prod/search';
         $client = new Client();
         $response = $client->post($url, [
@@ -78,6 +89,34 @@ class SearchController extends Controller
         $data['creator'] = $this->getDataFromEndpoint(['creator' => $searchStr]);
 
         return $data;
+    }
+
+    public function searchWithPaginate(LaravelRequest $request)
+    {
+        $perPage = 10;
+        $pageNumber = $request->get('page');
+
+        if ($pageNumber == null || $pageNumber == 1) {
+            $offset = 0;
+        } else {
+            $offset = ($pageNumber - 1) * $perPage;
+        }
+
+        $query = new \stdClass();
+        $query->query = [
+            "title" => "John"
+        ];
+        $query->start = $offset;
+
+        $items = collect(\GuzzleHttp\json_decode($this->getDataFromEndpoint($query)));
+        $totalCount = $items->get('hits')->found;
+
+        return view('targeted_search', [
+            'pageNumber' => $pageNumber,
+            'totalCount' => $totalCount,
+            'items' => $items,
+            'pagination' => \BootstrapComponents::pagination($items, $totalCount, $pageNumber, $perPage, '', ['arrows' => true])
+        ]);
     }
 
 

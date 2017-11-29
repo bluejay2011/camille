@@ -37,3 +37,4 @@ Route::post('/endpoint', function() {
      * Raw
      **/
 });
+Route::get('searchWithPaginate', 'SearchController@searchWithPaginate');
