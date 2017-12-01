@@ -3,17 +3,31 @@
 
 @section('content')
     <br /><br />
-    <div class="row col-md-12">
-        {{--<h6 class="col-md-10 offset-md-1">Results for "{{ $q }}"</h6>--}}
-        <p>Page {{$pageNumber}} of about {{$totalCount}} results</p>
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <p>Page {{$pageNumber}} of about {{$totalCount}} results</p>
+        </div>
     </div>
 
+    <div class="row">
     @if (isset($items->get('hits')->hit))
         @foreach ($items->get('hits')->hit as $item)
-            <h6> {{ isset($item->fields->title)? $item->fields->title[0] : "" }}</h6>
-            <p> {{ isset($item->fields->description)? $item->fields->description[0] : "" }}</p>
+        <div class="col-md-6 offset-md-1">
+            <?php
+                $title = isset($item->fields->title)? $item->fields->title[0] : "";
+                if ($title) {
+                    $url = isset($item->fields->url)? $item->fields->url[0] : "";
+                }
+            ?>
+            <h6><a href="{{$url}}">{{$title}}</a></h6>
+            <p class="desc"> {{ isset($item->fields->description)? $item->fields->description[0] : "" }}</p>
             <br />
-        @endforeach;
+        </div>
+        @endforeach
+
+        <div class="col-md-6 offset-md-2">
         {{ $pagination }}
+        </div>
     @endif
+    </div>
 @endsection
