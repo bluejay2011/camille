@@ -108,13 +108,6 @@ class SearchController extends Controller
     {
         // Let's clean search params, should have no null data
         $cleanParams = array_filter($searchParams);
-        /*$cleanParams = array();
-        foreach($searchParams as $key => $value) {
-            if (isset($value)) {
-                $cleanParams[$key] = $value;
-            }
-        }*/
-
         $query = new \stdClass();
         $query->query = $cleanParams;
         $query->start = $offset;
@@ -163,6 +156,24 @@ class SearchController extends Controller
         ));
 
         return $data;
+    }
+
+    private function inputFormatter($field, array $searchParams)
+    {
+        $searchArr = array();
+
+        foreach($searchParams as $searchStr) {
+            $searchInput = new \stdClass();
+            $searchInput->searchInput = $searchStr;
+
+            $searchArr[] = $searchInput;
+        }
+
+        $query = new \stdClass();
+        $query->{$field} = new \stdClass();
+        $query->{$field}->searchInputArr = $searchArr;
+
+        return $query;
     }
 
     /*public function searchWithPaginate(LaravelRequest $request, $resultSet)

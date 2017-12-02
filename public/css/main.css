@@ -1,0 +1,11 @@
+.navbar-nav .nav-item span {
+    float: left;
+}
+.navbar-nav .nav-item .header-name {
+    float: left;
+    margin-top: 8px;
+}
+.navbar-nav .nav-item .header-logout .nav-link:before {
+    content: "|";
+    margin-right: 10px;
+}

@@ -8,13 +8,13 @@
         <meta name="author" content="">
         <title>Camille</title>
         <!-- Bootstrap CSS -->
-        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
-        <link href="font/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-        
+        <link href="{{ asset('font/font-awesome-4.7.0/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css">
+        <link href="{{ asset('css/main.css') }}" rel="stylesheet" type="text/css">
     </head>
-    <body id="page-top" class="index">      
+    <body id="page-top" class="index">
         @include('layouts.partials._navigation')
     
         @include('layouts.partials._header')

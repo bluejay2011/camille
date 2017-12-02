@@ -11,17 +11,35 @@
             <input class="form-control mr-sm-2 col-10" type="text" name="q" placeholder="Find Books, Journals, Exams, Authors and more..." aria-label="Search" value="{{ $q }}">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
         </form>
-        <ul class="navbar-nav col-4 offset-4">
-            <li class="nav-item">
-                <a class="nav-link" href="/signin">Sign In</a>
-            </li>
-        </ul>
+            @if (session()->exists('logged_in'))
+                <ul class="navbar-nav col-4 offset-8">
+                    <li class="nav-item">
+                        <span class="header-name">Hi, {{session()->get('name', 'Guest')}}</span>
+                        <span class="header-logout"><a class="nav-link" href="/logout">Logout</a></span>
+                    </li>
+                </ul>
+            @else
+            <ul class="navbar-nav col-4 offset-4">
+                <li class="nav-item">
+                    <a class="nav-link" href="/signin">Sign In</a>
+                </li>
+            </ul>
+            @endif
         @else
-        <ul class="navbar-nav col-12 offset-11">
-            <li class="nav-item">
-                <a class="nav-link" href="/signin">Sign In</a>
-            </li>
-        </ul>
+            @if (session()->exists('logged_in'))
+                <ul class="navbar-nav col-4 offset-8">
+                    <li class="nav-item">
+                        <span class="header-name">Hi, {{session()->get('name', 'Guest')}}</span>
+                        <span class="header-logout"><a class="nav-link" href="/logout">Logout</a></span>
+                    </li>
+                </ul>
+            @else
+                <ul class="navbar-nav col-1 offset-11">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/signin">Sign In</a>
+                    </li>
+                </ul>
+            @endif
         @endif
 
     </div>
