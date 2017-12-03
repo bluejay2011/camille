@@ -53,7 +53,11 @@ class SearchController extends Controller
                 ],
             ];
 
-            return view($rs['view'], ['q' => $searchQuery, 'rs' => $rs, 'titleMap' => $titleMap]);
+            if (count($rs['resultSet']) > 0) {
+                return view($rs['view'], ['q' => $searchQuery, 'rs' => $rs, 'titleMap' => $titleMap]);
+            } else {
+                return view('no_match', ['q' => $searchQuery]);
+            }
         } else {
             // show search results
             $pageNumber = $request->get('page', 1);
@@ -134,7 +138,7 @@ class SearchController extends Controller
         // Let's clean search params, should have no null data
         $cleanParams = array_filter($searchParams);
         foreach($cleanParams as  $key => $param) {
-            if(in_array("journals", $cleanParams) && $key === "tags") {
+            if ((in_array("journal", $cleanParams) || in_array("journals", $cleanParams)) && $key === "tags") {
                 $key = "category";
             }
 
