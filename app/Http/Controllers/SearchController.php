@@ -34,7 +34,26 @@ class SearchController extends Controller
         $rs = $this->getIntent($searchQuery, $request);
         if ($rs['intentName'] === 'none') {
             // show the generic view
-            return view($rs['view'], ['q' => $searchQuery, 'rs' => $rs]);
+            $titleMap = [
+                'website-CambridgeEnglish' => [
+                    'title' => 'Cambridge English',
+                    'link' => 'http://cambridge.org/cambridgeenglish'
+                 ],
+                'website-AcademicProfessional' => [
+                    'title' => 'Academic and Professional',
+                    'link' => 'http://cambridge.org/academic'
+                ],
+                'website-CambridgeCore' => [
+                    'title' => 'Cambridge Core',
+                    'link' => 'http://cambridge.org/core'
+                ],
+                'website-Education' => [
+                    'title' => 'Global Education',
+                    'link' => 'http://cambridge.org/education'
+                ],
+            ];
+
+            return view($rs['view'], ['q' => $searchQuery, 'rs' => $rs, 'titleMap' => $titleMap]);
         } else {
             // show search results
             $pageNumber = $request->get('page', 1);
@@ -45,6 +64,7 @@ class SearchController extends Controller
             if ($searchQuery) {
                 $path = "search?q=" . urlencode($searchQuery);
             }
+
 
             if ($totalCount > 0) {
                 return view('targeted_search', [
@@ -82,7 +102,7 @@ class SearchController extends Controller
         if ($lexResult->get('dialogState') === 'ElicitIntent') {
             // We'll only get the first 5
             $rs = $this->getDataWithoutIntent($searchQuery, $request, 3);
-        } elseif ($lexResult->get('dialogState') === 'ReadyForFulfillment') {
+        } elseif ($lexResult->get('dialogState') === 'ReadyForFulfillment' || $lexResult->get('dialogState') === 'ElicitSlot') {
             $offset = $this->getPage($request);
             $intentName = $lexResult->get('intentName');
             $rs = $this->getDataFromEndpoint($lexResult->get('slots'), $request, $offset);
@@ -114,12 +134,17 @@ class SearchController extends Controller
         // Let's clean search params, should have no null data
         $cleanParams = array_filter($searchParams);
         foreach($cleanParams as  $key => $param) {
+            if(in_array("journals", $cleanParams) && $key === "tags") {
+                $key = "category";
+            }
+
             $query->query = $this->inputFormatter($query->query, $key, [$param]);
         }
 
         if (session()->exists('logged_in')) {
             $query->query = $this->inputFormatter($query->query, 'audience', [session()->get('type')]);
         }
+
 
         $url = 'https://mp1180ms5a.execute-api.us-west-2.amazonaws.com/Prod/search';
         $client = new Client();
@@ -147,12 +172,12 @@ class SearchController extends Controller
     private function getDataWithoutIntent($searchStr, $request, $size)
     {
         $data = array();
-        $data['title'] = $this->decode($this->getDataFromEndpoint(
-            ['title' => $searchStr], $request, 0, $size
-        ));
-        $data['creator'] = $this->decode($this->getDataFromEndpoint(
-            ['creator' => $searchStr], $request, 0, $size
-        ));
+        //$data['title'] = $this->decode($this->getDataFromEndpoint(
+        //    ['title' => $searchStr], $request, 0, $size
+        //));
+        //$data['creator'] = $this->decode($this->getDataFromEndpoint(
+        //    ['creator' => $searchStr], $request, 0, $size
+        //));
         $data['website-CambridgeEnglish'] = $this->decode($this->getDataFromEndpoint(
             ['title' => $searchStr, 'website' => 'Cambridge English'], $request, 0, $size
         ));
@@ -162,8 +187,29 @@ class SearchController extends Controller
         $data['website-AcademicProfessional'] = $this->decode($this->getDataFromEndpoint(
             ['title' => $searchStr, 'website' => 'Academic and Professional'], $request, 0, $size
         ));
+        $data['website-Education'] = $this->decode($this->getDataFromEndpoint(
+            ['is_part_of' => $searchStr, 'website' => 'Global Education'], $request, 0, $size
+        ));
 
-        return $data;
+        return $this->sortByScore($data);
+    }
+
+    private function sortByScore($data) {
+
+        $forSorting = array();
+        foreach($data as $key => $datum) {
+            if(isset($datum->hits->hit[0]->fields->_score)) {
+                $forSorting[$key] = (float) $datum->hits->hit[0]->fields->_score[0];
+            }
+        }
+        arsort($forSorting);
+
+        $sorted = array();
+        foreach($forSorting as $key => $value) {
+            $sorted[$key] = $data[$key];
+        }
+
+        return $sorted;
     }
 
     private function inputFormatter($query, $field, array $searchParams)
@@ -182,46 +228,4 @@ class SearchController extends Controller
 
         return $query;
     }
-
-    /*public function searchWithPaginate(LaravelRequest $request, $resultSet)
-    {
-        $items = collect(\GuzzleHttp\json_decode($resultSet));
-        $totalCount = $items->get('hits')->found;
-
-        return view('targeted_search', [
-            'pageNumber' => $pageNumber,
-            'totalCount' => $totalCount,
-            'items' => $items,
-            'pagination' => \BootstrapComponents::pagination($items, $totalCount, $pageNumber, $this->perPage, '', ['arrows' => true])
-        ]);
-    }*/
-
-    /*public function searchWithPaginate(LaravelRequest $request)
-    {
-        $this->perPage = 10;
-        $pageNumber = $request->get('page', 1);
-        if ($pageNumber == null || $pageNumber == 1) {
-            $offset = 0;
-        } else {
-            $offset = ($pageNumber - 1) * $this->perPage;
-        }
-
-        $query = new \stdClass();
-        $query->query = [
-            "title" => "John"
-        ];
-        $query->start = $offset;
-
-        $items = collect(\GuzzleHttp\json_decode($this->getDataFromEndpoint($query)));
-        $totalCount = $items->get('hits')->found;
-
-        return view('targeted_search', [
-            'pageNumber' => $pageNumber,
-            'totalCount' => $totalCount,
-            'items' => $items,
-            'pagination' => \BootstrapComponents::pagination($items, $totalCount, $pageNumber, $this->perPage, '', ['arrows' => true])
-        ]);
-    }*/
-
-
 }

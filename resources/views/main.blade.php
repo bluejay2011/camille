@@ -10,7 +10,7 @@
 	</div>
 	<div class="row justify-content-center">
 		<div class="col-4 text-center">
-			<h6>Loren ipsum blablahbla</h6>
+
 		</div>
 	</div>
 	<br />
