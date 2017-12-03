@@ -106,12 +106,20 @@ class SearchController extends Controller
 
     private function getDataFromEndpoint($searchParams, $request, $offset = 0, $size = 10)
     {
-        // Let's clean search params, should have no null data
-        $cleanParams = array_filter($searchParams);
         $query = new \stdClass();
-        $query->query = $cleanParams;
+        $query->query = new \stdClass();
         $query->start = $offset;
         $query->size = $size;
+
+        // Let's clean search params, should have no null data
+        $cleanParams = array_filter($searchParams);
+        foreach($cleanParams as  $key => $param) {
+            $query->query = $this->inputFormatter($query->query, $key, [$param]);
+        }
+
+        if (session()->exists('logged_in')) {
+            $query->query = $this->inputFormatter($query->query, 'audience', [session()->get('type')]);
+        }
 
         $url = 'https://mp1180ms5a.execute-api.us-west-2.amazonaws.com/Prod/search';
         $client = new Client();
@@ -158,7 +166,7 @@ class SearchController extends Controller
         return $data;
     }
 
-    private function inputFormatter($field, array $searchParams)
+    private function inputFormatter($query, $field, array $searchParams)
     {
         $searchArr = array();
 
@@ -169,7 +177,6 @@ class SearchController extends Controller
             $searchArr[] = $searchInput;
         }
 
-        $query = new \stdClass();
         $query->{$field} = new \stdClass();
         $query->{$field}->searchInputArr = $searchArr;
 

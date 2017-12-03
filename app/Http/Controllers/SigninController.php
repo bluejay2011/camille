@@ -47,7 +47,7 @@ class SigninController extends Controller
     {
         session([
             'logged_in' => true,
-            'username' => 'teacher',
+            'type' => 'teacher',
             'name' => 'Teacher Yvonne Camay',
             'email' => 'teacher@cambridge.org'
         ]);
@@ -57,7 +57,7 @@ class SigninController extends Controller
     {
         session([
             'logged_in' => true,
-            'username' => 'student',
+            'type' => 'student',
             'name' => 'Student Felix Natividad',
             'email' => 'student@cambridge.org'
         ]);
@@ -67,7 +67,7 @@ class SigninController extends Controller
     {
         session([
             'logged_in' => true,
-            'username' => 'professor',
+            'type' => 'professor',
             'name' => 'Professor Xavier',
             'email' => 'professor@cambridge.org'
         ]);
@@ -77,9 +77,15 @@ class SigninController extends Controller
     {
         session([
             'logged_in' => true,
-            'username' => 'researcher',
+            'type' => 'researcher',
             'name' => 'Researcher Brene Brown',
             'email' => 'researcher@cambridge.org'
         ]);
+    }
+
+    public function logout(Request $request)
+    {
+        session()->flush();
+        return redirect('/');
     }
 }

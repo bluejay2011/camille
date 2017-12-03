@@ -17,6 +17,7 @@ Route::get('/', function () {
 Route::get('search/{params?}', 'SearchController@search');
 Route::get('signin', 'SigninController@index');
 Route::post('/signin/login', 'SigninController@doLogin');
+Route::get('logout', 'SigninController@logout');
 
 //Route::get('search', 'SearchController@index');
 /*Route::get('/search', function() {

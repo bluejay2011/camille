@@ -16,7 +16,7 @@
                     <h6><a href="{{$url}}">{{$title}}</a></h6>
                     <?php if(isset($item->fields->creator)): ?>
                     <span class="author">By: {{ implode($item->fields->creator, ", ") }}</span>
-                    <?php endif; ?>
+                    <?php endif ?>
                     <p class="desc"> {{ isset($item->fields->description)? $item->fields->description[0] : "" }}</p>
                     <br />
                 </div>
