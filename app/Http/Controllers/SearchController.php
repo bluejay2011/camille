@@ -35,6 +35,10 @@ class SearchController extends Controller
         if ($rs['intentName'] === 'none') {
             // show the generic view
             $titleMap = [
+                'creator' => [
+                    'title' => 'Author',
+                    'link' => '#'
+                ],
                 'website-CambridgeEnglish' => [
                     'title' => 'Cambridge English',
                     'link' => 'http://cambridge.org/cambridgeenglish'
@@ -179,9 +183,9 @@ class SearchController extends Controller
         //$data['title'] = $this->decode($this->getDataFromEndpoint(
         //    ['title' => $searchStr], $request, 0, $size
         //));
-        //$data['creator'] = $this->decode($this->getDataFromEndpoint(
-        //    ['creator' => $searchStr], $request, 0, $size
-        //));
+        $data['creator'] = $this->decode($this->getDataFromEndpoint(
+            ['creator' => $searchStr], $request, 0, $size
+        ));
         $data['website-CambridgeEnglish'] = $this->decode($this->getDataFromEndpoint(
             ['title' => $searchStr, 'website' => 'Cambridge English'], $request, 0, $size
         ));
@@ -192,7 +196,7 @@ class SearchController extends Controller
             ['title' => $searchStr, 'website' => 'Academic and Professional'], $request, 0, $size
         ));
         $data['website-Education'] = $this->decode($this->getDataFromEndpoint(
-            ['is_part_of' => $searchStr, 'website' => 'Global Education'], $request, 0, $size
+            ['title' => $searchStr, 'website' => 'Global Education'], $request, 0, $size
         ));
 
         return $this->sortByScore($data);
