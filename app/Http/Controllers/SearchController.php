@@ -154,7 +154,7 @@ class SearchController extends Controller
         }
 
 
-        $url = 'https://mp1180ms5a.execute-api.us-west-2.amazonaws.com/Prod/search';
+        $url = 'https://rjialx5odh.execute-api.us-east-1.amazonaws.com/Prod/search';
         $client = new Client();
         $response = $client->post($url, [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],

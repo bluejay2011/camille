@@ -12,8 +12,8 @@ class AwsLex extends Model
             'region'  => 'us-east-1',
             'version' => 'latest',
             'credentials' => [
-                'key'    => 'AKIAJRU64634IGXS4JFQ',
-                'secret' => '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',
+                'key'    => 'AKIAJVQLHMNINXIS5IWA',
+                'secret' => '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',
             ]
         ];
     }
