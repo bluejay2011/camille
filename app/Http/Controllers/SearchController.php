@@ -32,7 +32,11 @@ class SearchController extends Controller
 
         // TODO: prepare view for result set :D
         $rs = $this->getIntent($searchQuery, $request);
-        if ($rs['intentName'] === 'none') {
+
+        if ($rs['resultSet'] === false) {
+            // no result from endpoint
+            return view('no_match', ['q' => $searchQuery]);
+        } elseif ($rs['intentName'] === 'none') {
             // show the generic view
             $titleMap = [
                 'creator' => [
@@ -153,16 +157,21 @@ class SearchController extends Controller
             $query->query = $this->inputFormatter($query->query, 'audience', [session()->get('type')]);
         }
 
-
         $url = 'https://rjialx5odh.execute-api.us-east-1.amazonaws.com/Prod/search';
         $client = new Client();
         $response = $client->post($url, [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => json_encode($query),
+            'http_errors' => false
         ]);
+        $statusCode = $response->getStatusCode();
 
-        $body = $response->getBody();
-        return $body->getContents();
+        if (in_array($statusCode, [200, 301])) {       
+            $body = $response->getBody();
+            return $body->getContents();
+        } 
+
+        return false;
     }
 
     private function decode($data)

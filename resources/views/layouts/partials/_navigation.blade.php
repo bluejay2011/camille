@@ -7,9 +7,9 @@
 
     <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         @if (isset($q))
-        <form class="form-inline col-7" style="margin-bottom: 0px" action="/search">
-            <input class="form-control mr-sm-2 col-10" type="text" name="q" placeholder="Find Books, Journals, Exams, Authors and more..." aria-label="Search" value="{{ $q }}">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
+        <form id="frm-search" class="form-inline col-7" style="margin-bottom: 0px" action="/search">
+            <input id="inp-search" class="form-control mr-sm-2 col-10" type="text" name="q" placeholder="Find Books, Journals, Exams, Authors and more..." aria-label="Search" value="{{ $q }}">
+            <button id="btn-search" class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
         </form>
             @if (session()->exists('logged_in'))
                 <ul class="navbar-nav col-3 offset-2">

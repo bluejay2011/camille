@@ -5,4 +5,10 @@ $(function(){
       return currentText.substr(0, 175) + '...';
     }
   });
+
+  $("#frm-search").click(function(e) {
+  	if ($("#inp-search").val() == "") {
+  		e.preventDefault();
+  	}
+  });
 });
