@@ -21,7 +21,7 @@
                     </div>
                 @endforeach
                     <div class="resultSet-more">
-                        Show: <a href="#">All Results</a>
+                        Show: <a href="<?php echo $more_link ?>">All Results</a>
                     </div>
             @endif
         </div>

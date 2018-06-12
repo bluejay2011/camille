@@ -29,39 +29,51 @@ class SearchController extends Controller
     public function search(LaravelRequest $request)
     {
         $searchQuery = \Request::get('q');
+        $show = \Request::get('show'); 
+        $showAll = isset($show) && $show === 'all'? true: false;
 
         // TODO: prepare view for result set :D
-        $rs = $this->getIntent($searchQuery, $request);
+        $rs = $this->getIntent($searchQuery, $request, $showAll);
 
         if ($rs['resultSet'] === false) {
             // no result from endpoint
             return view('no_match', ['q' => $searchQuery]);
         } elseif ($rs['intentName'] === 'none') {
+            $baseUrl = $this->getCurrentBaseUrl();
+            if ($searchQuery) {
+                $baseUrl .= '?q=' . $searchQuery;
+            }
+
             // show the generic view
             $titleMap = [
                 'creator' => [
                     'title' => 'Author',
-                    'link' => '#'
+                    'link' => '#',
+                    'more_link' => '#'
                 ],
                 'website-CambridgeEnglish' => [
                     'title' => 'Cambridge English',
-                    'link' => 'http://cambridge.org/cambridgeenglish'
+                    'link' => 'http://cambridge.org/cambridgeenglish',
+                    'more_link' => $baseUrl.'&website=CambridgeEnglish&show=all'
                  ],
                 'website-AcademicProfessional' => [
                     'title' => 'Academic and Professional',
-                    'link' => 'http://cambridge.org/academic'
+                    'link' => 'http://cambridge.org/academic',
+                    'more_link' => $baseUrl.'&website=AcademicProfessional&show=all'
                 ],
                 'website-CambridgeCore' => [
                     'title' => 'Cambridge Core',
-                    'link' => 'http://cambridge.org/core'
+                    'link' => 'http://cambridge.org/core',
+                    'more_link' => $baseUrl.'&website=CambridgeCore&show=all'
                 ],
                 'website-Education' => [
                     'title' => 'Global Education',
-                    'link' => 'http://cambridge.org/education'
+                    'link' => 'http://cambridge.org/education',
+                    'more_link' => $baseUrl.'&website=Education&show=all'
                 ],
             ];
 
-            if (count($rs['resultSet']) > 0) {
+            if ($rs && count($rs['resultSet']) > 0) {
                 return view($rs['view'], ['q' => $searchQuery, 'rs' => $rs, 'titleMap' => $titleMap]);
             } else {
                 return view('no_match', ['q' => $searchQuery]);
@@ -93,7 +105,7 @@ class SearchController extends Controller
         }
     }
 
-    private function getIntent($searchQuery, $request)
+    private function getIntent($searchQuery, $request, $showAll = false)
     {
         $aws = new AwsLex();
         $sdk = new \Aws\Sdk($aws->getCredentials());
@@ -112,8 +124,17 @@ class SearchController extends Controller
 
         $intentName = "none";
         if ($lexResult->get('dialogState') === 'ElicitIntent') {
-            // We'll only get the first 5
-            $rs = $this->getDataWithoutIntent($searchQuery, $request, 3);
+            if ($showAll == false) {
+                // We'll only get the first 3
+                $rs = $this->getDataWithoutIntent($searchQuery, $request, 3);   
+            } else {
+                $website = $this->convertWebsite(\Request::get('website')); 
+                $intentName = 'custom';
+                $offset = $this->getPage($request);
+                $slots = ['title' => $searchQuery, 'website' => $website];
+                $rs = $this->getDataFromEndpoint($slots, $request, $offset);
+                $view = 'targeted_search';
+            }
         } elseif ($lexResult->get('dialogState') === 'ReadyForFulfillment' || $lexResult->get('dialogState') === 'ElicitSlot') {
             $offset = $this->getPage($request);
             $intentName = $lexResult->get('intentName');
@@ -156,6 +177,7 @@ class SearchController extends Controller
         if (session()->exists('logged_in')) {
             $query->query = $this->inputFormatter($query->query, 'audience', [session()->get('type')]);
         }
+
 
         $url = 'https://rjialx5odh.execute-api.us-east-1.amazonaws.com/Prod/search';
         $client = new Client();
@@ -211,6 +233,19 @@ class SearchController extends Controller
         return $this->sortByScore($data);
     }
 
+    private function convertWebsite($website) {
+        switch ($website) {
+            case 'CambridgeEnglish':
+                return 'Cambridge English';
+            case 'CambridgeCore':
+                return 'Cambridge Core';
+            case 'AcademicProfessional':
+                return 'Academic and Professional';
+            case 'Education':
+                return 'Global Education';
+        }
+    }
+
     private function sortByScore($data) {
 
         $forSorting = array();
@@ -244,5 +279,23 @@ class SearchController extends Controller
         $query->{$field}->searchInputArr = $searchArr;
 
         return $query;
+    }
+
+    private function getCurrentBaseUrl() 
+    {
+        // output: /myproject/index.php
+        $currentPath = $_SERVER['PHP_SELF']; 
+
+        // output: Array ( [dirname] => /myproject [basename] => index.php [extension] => php [filename] => index ) 
+        $pathInfo = parse_url($_SERVER['REQUEST_URI']); 
+
+        // output: localhost
+        $hostName = $_SERVER['HTTP_HOST']; 
+
+        // output: http://
+        $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"],0,5))=='https'?'https':'http';
+
+        // return: http://localhost/myproject/
+        return $protocol.'://'.$hostName.$pathInfo['path']."/";
     }
 }
